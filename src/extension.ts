@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
@@ -20,15 +20,30 @@ export function activate(context: vscode.ExtensionContext) {
 			'angularLiveEditor',
 			'Angular Live Editor',
 			vscode.ViewColumn.Beside,
-			{}
+			{
+				enableScripts: true,
+			}
 		);
 
-		panel.webview.html = getWebViewContent(getText())
+		updatePanel(panel);
 
-		vscode.window.showInformationMessage('Opening Live template editor...');
+		vscode.workspace.onDidChangeTextDocument((event) => {
+			updatePanel(panel);
+		});
 	});
 
 	context.subscriptions.push(disposable);
+}
+
+async function updatePanel(panel: vscode.WebviewPanel) {
+	let raw = getText();
+	let config = await getConfig();
+	console.log(config);
+	let compiled = getCompiledTemplate(raw, config);
+	console.log('this:', compiled);
+	console.log('this ended');
+
+	panel.webview.html = getWebViewContent(compiled);
 }
 
 function getText() {
@@ -45,12 +60,35 @@ function getText() {
 	return 'No content';
 }
 
+async function getConfig() {
+	const editor = vscode.window.activeTextEditor;
+	if (editor) {
+		let path = editor.document.uri.fsPath;
+		let configPath = path.split('.').slice(0, -1).join('.') + ".config.json";
+		console.log(configPath);
+		let configFile = await vscode.workspace.openTextDocument(configPath);
+		return JSON.parse(configFile.getText());
+	}
+	return {};
+}
+
+function getCompiledTemplate(raw: string, config: any) {
+	for(let key of Object.keys(config)) {
+		raw = raw.replace(key, config[key]);
+	}
+
+	return raw;
+}
+
 function getWebViewContent(text: string) {
 	return `
 	<!DOCTYPE html>
 	<html lang="en">
-	<body>
-		<h1>Angular Live Editor</h1>
+	<head>
+	<script src="https://cdn.tailwindcss.com"></script>
+	</head>
+	<body style="background-color: white">
+		<h1 class="bg-gray-500 text-white">Angular Live Editor</h1>
 		<p>${text}</p>
 	</body>
 	</html>
