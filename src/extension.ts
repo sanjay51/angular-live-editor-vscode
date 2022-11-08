@@ -66,7 +66,17 @@ async function getConfig() {
 		let path = editor.document.uri.fsPath;
 		let configPath = path.split('.').slice(0, -1).join('.') + ".config.json";
 		console.log(configPath);
-		let configFile = await vscode.workspace.openTextDocument(configPath);
+		let configFile: any = null;
+		try {
+			configFile = await vscode.workspace.openTextDocument(configPath);
+		} catch(e) {
+			console.log(e);
+		}
+
+		if (!configFile) {
+			return {};
+		}
+		
 		return JSON.parse(configFile.getText());
 	}
 	return {};
@@ -88,8 +98,7 @@ function getWebViewContent(text: string) {
 	<script src="https://cdn.tailwindcss.com"></script>
 	</head>
 	<body style="background-color: white">
-		<h1 class="bg-gray-500 text-white">Angular Live Editor</h1>
-		<p>${text}</p>
+		${text}
 	</body>
 	</html>
 `

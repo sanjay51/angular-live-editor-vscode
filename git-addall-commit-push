@@ -1,0 +1,7 @@
+message="$@"
+echo $message
+if [ $# -eq 0 ]; then
+    echo "No arguments provided"
+    message="Update"
+fi
+git add *; git commit -m "$message"; git push
