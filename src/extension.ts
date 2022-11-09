@@ -30,6 +30,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.workspace.onDidChangeTextDocument((event) => {
 			updatePanel(panel);
 		});
+
+		vscode.workspace.onDidOpenTextDocument((event) => {
+			updatePanel(panel);
+		});
 	});
 
 	context.subscriptions.push(disposable);
