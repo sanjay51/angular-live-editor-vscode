@@ -38,10 +38,7 @@ export async function activate(context: vscode.ExtensionContext) {
 async function updatePanel(panel: vscode.WebviewPanel) {
 	let raw = getText();
 	let config = await getConfig();
-	console.log(config);
 	let compiled = getCompiledTemplate(raw, config);
-	console.log('this:', compiled);
-	console.log('this ended');
 
 	panel.webview.html = getWebViewContent(compiled);
 }
@@ -93,13 +90,20 @@ function getCompiledTemplate(raw: string, config: any) {
 function getWebViewContent(text: string) {
 	return `
 	<!DOCTYPE html>
-	<html lang="en">
+	<html id="myhtml" lang="en" style="color: red">
 	<head>
 	<script src="https://cdn.tailwindcss.com"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css">
 	</head>
 	<body style="background-color: white">
 		${text}
 	</body>
+	<script type="text/javascript">
+		document.body.removeAttribute('class');
+		document.getElementById("myhtml").class = "";
+		document.getElementById("myhtml").style = "";
+		console.log(document.getElementById("myhtml"))
+	</script>
 	</html>
 `
 }
