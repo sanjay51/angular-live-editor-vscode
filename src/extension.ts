@@ -16,23 +16,55 @@ export async function activate(context: vscode.ExtensionContext) {
 	let disposable = vscode.commands.registerCommand('angular-live-editor.showTemplateEditor', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
-		const panel = vscode.window.createWebviewPanel(
+		let panel = vscode.window.createWebviewPanel(
 			'angularLiveEditor',
 			'Angular Live Editor',
-			vscode.ViewColumn.Beside,
+			{
+				preserveFocus: true,
+				viewColumn: vscode.ViewColumn.Beside
+			},
 			{
 				enableScripts: true,
 			}
 		);
+		let isPanelVisible = true;
 
 		updatePanel(panel);
 
 		vscode.workspace.onDidChangeTextDocument((event) => {
-			updatePanel(panel);
+			if (panel.visible)
+				updatePanel(panel);
 		});
 
 		vscode.workspace.onDidOpenTextDocument((event) => {
-			updatePanel(panel);
+			let htmlFileOpen = isHTMLTemplateFileOpen();
+			console.log("2 htmlFileOpen: " + htmlFileOpen);
+
+			if (htmlFileOpen) {
+				console.log(JSON.stringify(panel));
+
+				if (!isPanelVisible) {
+					console.log("panel not visible");
+					panel = vscode.window.createWebviewPanel(
+						'angularLiveEditor',
+						'Angular Live Editor',
+						{
+							preserveFocus: true,
+							viewColumn: vscode.ViewColumn.Beside
+						},
+						{
+							enableScripts: true,
+						}
+					);
+				}
+
+				updatePanel(panel);
+				isPanelVisible = true;
+			} else {
+				console.log("HTML file not open");
+				panel.dispose();
+				isPanelVisible = false;
+			}
 		});
 	});
 
@@ -40,6 +72,8 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 async function updatePanel(panel: vscode.WebviewPanel) {
+	if (!panel) return;
+
 	let raw = getText();
 	let config = await getConfig();
 	let compiled = getCompiledTemplate(raw, config);
@@ -81,6 +115,16 @@ async function getConfig() {
 		return JSON.parse(configFile.getText());
 	}
 	return {};
+}
+
+function isHTMLTemplateFileOpen() {
+	const editor = vscode.window.activeTextEditor;
+	if (editor) {
+		let path = editor.document.uri.fsPath;
+		return path.endsWith('.html');
+	}
+
+	return false;
 }
 
 function getCompiledTemplate(raw: string, config: any) {
