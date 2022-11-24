@@ -15,15 +15,20 @@ export async function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
+	let panel: vscode.WebviewPanel | undefined = undefined;
+
 	let disposable1 = vscode.commands.registerCommand('angular-live-editor.toggleTemplateEditor', () => {
 		config.isEnabled = !config.isEnabled;
+		if (!config.isEnabled && panel) {
+			panel.dispose();
+		}
 	});
 
 	let disposable2 = vscode.commands.registerCommand('angular-live-editor.showTemplateEditor', () => {
 		config.isEnabled = true;
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
-		let panel = vscode.window.createWebviewPanel(
+		panel = vscode.window.createWebviewPanel(
 			'angularLiveEditor',
 			'Angular Live Editor',
 			{
@@ -39,19 +44,17 @@ export async function activate(context: vscode.ExtensionContext) {
 		updatePanel(panel);
 
 		vscode.workspace.onDidChangeTextDocument((event) => {
-			if (panel.visible && config.isEnabled)
+			if (panel && panel.visible && config.isEnabled)
 				updatePanel(panel);
 		});
 
 		vscode.workspace.onDidOpenTextDocument((event) => {
+			if (!panel) return;
 
 			let htmlFileOpen = isHTMLTemplateFileOpen();
-			console.log("2 htmlFileOpen: " + htmlFileOpen);
 
 			if (htmlFileOpen) {
 				if (!config.isEnabled) return;
-
-				console.log(JSON.stringify(panel));
 
 				if (!isPanelVisible) {
 					console.log("panel not visible");

@@ -7,7 +7,7 @@
     "url": "https://github.com/sanjay51/ng-enterprise-template"
   },
   "publisher": "SanjayVerma",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.73.0"
   },
@@ -44,7 +44,8 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "pkg" : "vsce package"
   },
   "devDependencies": {
     "@types/vscode": "^1.73.0",
