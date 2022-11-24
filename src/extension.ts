@@ -4,6 +4,8 @@ import * as vscode from 'vscode';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
+
+const config = {isEnabled: true};
 export async function activate(context: vscode.ExtensionContext) {
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
@@ -13,7 +15,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('angular-live-editor.showTemplateEditor', () => {
+	let disposable1 = vscode.commands.registerCommand('angular-live-editor.toggleTemplateEditor', () => {
+		config.isEnabled = !config.isEnabled;
+	});
+
+	let disposable2 = vscode.commands.registerCommand('angular-live-editor.showTemplateEditor', () => {
+		config.isEnabled = true;
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
 		let panel = vscode.window.createWebviewPanel(
@@ -32,15 +39,18 @@ export async function activate(context: vscode.ExtensionContext) {
 		updatePanel(panel);
 
 		vscode.workspace.onDidChangeTextDocument((event) => {
-			if (panel.visible)
+			if (panel.visible && config.isEnabled)
 				updatePanel(panel);
 		});
 
 		vscode.workspace.onDidOpenTextDocument((event) => {
+
 			let htmlFileOpen = isHTMLTemplateFileOpen();
 			console.log("2 htmlFileOpen: " + htmlFileOpen);
 
 			if (htmlFileOpen) {
+				if (!config.isEnabled) return;
+
 				console.log(JSON.stringify(panel));
 
 				if (!isPanelVisible) {
@@ -68,7 +78,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		});
 	});
 
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(disposable1);
+
+	context.subscriptions.push(disposable2);
 }
 
 async function updatePanel(panel: vscode.WebviewPanel) {
