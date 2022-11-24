@@ -23,7 +23,7 @@
     "commands": [
       {
         "command": "angular-live-editor.toggleTemplateEditor",
-        "title": "Live Angular Template Editor"
+        "title": "Toggle Live Editor"
       }
     ]
   },
