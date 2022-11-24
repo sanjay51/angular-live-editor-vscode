@@ -7,7 +7,7 @@
     "url": "https://github.com/sanjay51/ng-enterprise-template"
   },
   "publisher": "SanjayVerma",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.73.0"
   },
@@ -16,7 +16,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:angular-live-editor.showTemplateEditor"
+    "onCommand:angular-live-editor.toggleTemplateEditor"
   ],
   "main": "./dist/extension.js",
   "contributes": {
