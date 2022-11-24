@@ -22,16 +22,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "angular-live-editor.showTemplateEditor",
-        "title": "Hello World"
-      },
-      {
-        "command": "angular-live-editor.showTemplateEditor",
-        "title": "Show Live Template Editor"
-      },
-      {
         "command": "angular-live-editor.toggleTemplateEditor",
-        "title": "Toggle Live Template Editor"
+        "title": "Toggle Live Angular Template Editor"
       }
     ]
   },
