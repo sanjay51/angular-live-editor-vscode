@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 
-const config = {isEnabled: true};
+const config = { isEnabled: false };
 export async function activate(context: vscode.ExtensionContext) {
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
@@ -17,10 +17,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	// The commandId parameter must match the command field in package.json
 	let panel: vscode.WebviewPanel | undefined = undefined;
 
-	let showPanel = () => {
-		config.isEnabled = true;
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
+	let createPanel = () => {
+		if (panel) {
+			panel.dispose();
+		}
+
 		panel = vscode.window.createWebviewPanel(
 			'angularLiveEditor',
 			'Angular Live Editor',
@@ -32,63 +33,66 @@ export async function activate(context: vscode.ExtensionContext) {
 				enableScripts: true,
 			}
 		);
-		let isPanelVisible = true;
 
-		updatePanel(panel);
+		return panel;
+	};
+
+	let showPanel = () => {
+		config.isEnabled = true;
+		// The code you place here will be executed every time your command is executed
+		// Display a message box to the user
+		panel = createPanel();
+
+		addPanelContent(panel);
 
 		vscode.workspace.onDidChangeTextDocument((event) => {
 			if (panel && panel.visible && config.isEnabled)
-				updatePanel(panel);
+				addPanelContent(panel);
 		});
 
 		vscode.workspace.onDidOpenTextDocument((event) => {
-			if (!panel) return;
-
 			let htmlFileOpen = isHTMLTemplateFileOpen();
 
-			if (htmlFileOpen) {
-				if (!config.isEnabled) return;
-
-				if (!isPanelVisible) {
-					console.log("panel not visible");
-					panel = vscode.window.createWebviewPanel(
-						'angularLiveEditor',
-						'Angular Live Editor',
-						{
-							preserveFocus: true,
-							viewColumn: vscode.ViewColumn.Beside
-						},
-						{
-							enableScripts: true,
-						}
-					);
-				}
-
-				updatePanel(panel);
-				isPanelVisible = true;
-			} else {
+			if (!htmlFileOpen || !config.isEnabled) {
 				console.log("HTML file not open");
-				panel.dispose();
-				isPanelVisible = false;
+				if (panel)
+					panel.dispose();
+				panel = undefined;
+
+				return;
 			}
+
+			if (!panel) {
+				panel = createPanel();
+			}
+
+			addPanelContent(panel);
 		});
 	};
 
-	let disposable1 = vscode.commands.registerCommand('angular-live-editor.toggleTemplateEditor', () => {
+	let command = 'angular-live-editor.toggleTemplateEditor';
+	let disposable1 = vscode.commands.registerCommand(command, () => {
 		config.isEnabled = !config.isEnabled;
-		if (!config.isEnabled && panel) {
-			panel.dispose();
-		}
-
-		if (config.isEnabled && !panel) {
+		if (!config.isEnabled) {
+			if (panel)
+				panel.dispose();
+			panel = undefined;
+		} else if (config.isEnabled) {
 			showPanel();
 		}
 	});
 
 	context.subscriptions.push(disposable1);
+
+	// create a new status bar item that we can now manage
+	let myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+	myStatusBarItem.command = command;
+	context.subscriptions.push(myStatusBarItem);
+	myStatusBarItem.text = `Live Editor`;
+	myStatusBarItem.show();
 }
 
-async function updatePanel(panel: vscode.WebviewPanel) {
+async function addPanelContent(panel: vscode.WebviewPanel) {
 	if (!panel) return;
 
 	let raw = getText();
@@ -121,14 +125,14 @@ async function getConfig() {
 		let configFile: any = null;
 		try {
 			configFile = await vscode.workspace.openTextDocument(configPath);
-		} catch(e) {
+		} catch (e) {
 			console.log(e);
 		}
 
 		if (!configFile) {
 			return {};
 		}
-		
+
 		return JSON.parse(configFile.getText());
 	}
 	return {};
@@ -145,7 +149,7 @@ function isHTMLTemplateFileOpen() {
 }
 
 function getCompiledTemplate(raw: string, config: any) {
-	for(let key of Object.keys(config)) {
+	for (let key of Object.keys(config)) {
 		raw = raw.replace(key, config[key]);
 	}
 
@@ -174,4 +178,4 @@ function getWebViewContent(text: string) {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }
