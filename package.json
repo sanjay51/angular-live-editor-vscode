@@ -2,6 +2,10 @@
   "name": "angular-live-editor",
   "displayName": "Angular Live Editor",
   "description": "Live template editor for Angular",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sanjay51/ng-enterprise-template"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.73.0"
